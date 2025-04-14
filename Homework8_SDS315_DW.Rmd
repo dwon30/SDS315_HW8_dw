@@ -1,0 +1,107 @@
+---
+title: "Homework 8"
+author: "Donghwan Won"
+date: "`r Sys.Date()`"
+output: html_document
+---
+**EID:** dw34446
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+library(mosaic)
+
+creatinine <- read.csv('C:/Users/namyu/OneDrive/바탕 화면/SDS315/HW8/creatinine.csv')
+covid <- read.csv('C:/Users/namyu/OneDrive/바탕 화면/SDS315/HW8/covid.csv')
+milk <- read.csv('C:/Users/namyu/OneDrive/바탕 화면/SDS315/HW8/milk.csv')
+
+
+```
+
+
+## 1 A
+```{r}
+creatinine_age = lm(creatclear ~ age, data=creatinine)
+coef(creatinine_age)
+```
+I found the coefficient for creatclear and age. Intercept is 147.81 and age is -0.62. So we have equation for age 55, which is 147.81-(0.62*55)=113.71.
+
+## 1 B
+The slope of regression line is -0.62ml/minute per year. This means that creatinine decreases by -0.62ml/minute in every year increases in age.
+
+## 1.C
+
+Creatinine clearance rate for 40 years old is 123.01ml/minute. The equation for this one is 147.81-(0.62*40). They have rate of 135. So residual for 40 years old is 134-123.01= 11.99.
+
+Then creatinine clearance rate for 60 years old is 110.61ml/minute. The equation for this one is 147.81-(0.62*60). They have rate of 120 So residual for 40 years old is 112-110.61
+= 1.39.
+
+Since the residual for 40 years old(11.99 ml/minute) is higher than residual for 60 years old(1.39 ml/minute), this indicate that 40 years old people are healthier than 60 years old.
+
+## 2. Italy
+
+```{r}
+covid_Italy_subset <- covid[covid$country == 'Italy',]
+covid_Italy = lm(log(deaths) ~ (days_since_first_death), data=covid_Italy_subset)
+coef(covid_Italy)
+
+boot_Italy = do(10000)*coef(lm(log(deaths) ~ days_since_first_death, data=mosaic::resample(covid_Italy_subset)))
+confint(boot_Italy, level = 0.95)
+
+
+boot_Italy2 = do(10000)*{(70/
+coef(lm(log(deaths) ~ days_since_first_death, data=mosaic::resample(covid_Italy_subset))))/100}
+confint(boot_Italy2, level = 0.95)
+
+
+```
+I found the coefficient for Italy. Intercept is 1.02 and days_since_first_death is 0.18. Number of deaths grows exponentially at a rate of 1.18 per day in Italy.
+
+After doing bootstrap, we are 95% confident that rate of days_since_first_death is between 0.16 and 0.21. 
+
+After doing bootstrap, we are 95% confident that doubling time for days_since_first_death is between 3.4 days and 4.4 days.
+
+## 2. Spain
+```{r}
+covid_Spain_subset <- covid[covid$country == 'Spain',]
+covid_Spain = lm(log(deaths) ~ (days_since_first_death), data=covid_Spain_subset)
+coef(covid_Spain)
+
+boot_Spain = do(10000)*coef(lm(log(deaths) ~ days_since_first_death, data=mosaic::resample(covid_Spain_subset)))
+confint(boot_Spain, level = 0.95)
+
+boot_Spain2 = do(10000)*{(70/
+  coef(lm(log(deaths) ~ days_since_first_death, data=mosaic::resample(covid_Spain_subset))))/100}
+confint(boot_Spain2, level = 0.95)
+
+```
+I found the coefficient for Italy. Intercept is 1.02 and days_since_first_death is 0.47. Number of deaths grows exponentially at a rate of 0.28 per day in Spain.
+
+After doing bootstrap, we are 95% confident that rate of days_since_first_death is between 0.23 and 0.32. 
+
+After doing bootstrap, we are 95% confident that doubling time for days_since_first_death is between 2.2 days and 3.0 days.
+
+
+```{r}
+ggplot(covid) + 
+  geom_line(aes(x = days_since_first_death, y = deaths, color = country)) +
+  labs(
+    title = "Daily COVID-19 Deaths in Italy and Spain",
+    x = "Days Since First Death",
+    y = "Reported Daily Deaths",
+    color = "Country"
+  )
+
+```
+
+## 3.
+```{r}
+lm_milk = lm(log(sales) ~ log(price), data=milk)
+coef(lm_milk)
+
+boot_milk = do(10000)*coef(lm(log(sales) ~ (price), data=mosaic::resample(milk)))
+confint(boot_milk, level = 0.95)
+
+```
+Estimated price elasticity of demand for milk is -.55. We are 95% confident that interval of price elasticity is between -0.61 and -0.47. 
+For this case, 1% increase in price leads to -0.55% decreases of demand on milk. 
